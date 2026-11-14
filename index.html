@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="js/audio.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -152,9 +153,7 @@ let matrixColumns = [];
 const fontSize = 16;
 let maxColumns = 0;
 
-let audioCtx = null;
-let humOsc = null;
-let humGain = null;
+const audioEngine = new AudioEngine();
 
 const uiHands = document.getElementById('ui-hands');
 const uiFps = document.getElementById('ui-fps');
@@ -191,81 +190,10 @@ document.getElementById('startBtn').addEventListener('click', () => {
     document.getElementById('startOverlay').classList.add('hidden');
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('themes').classList.remove('hidden');
-    initAudio();
+    audioEngine.init();
     initMediaPipe();
     requestAnimationFrame(renderLoop);
 });
-
-function initAudio() {
-    try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        if (!audioCtx) {
-            audioCtx = new AudioContextClass();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-        if (!humOsc) {
-            humOsc = audioCtx.createOscillator();
-            humGain = audioCtx.createGain();
-            humOsc.type = 'sine';
-            humOsc.frequency.setValueAtTime(100, audioCtx.currentTime);
-            humGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            humOsc.connect(humGain);
-            humGain.connect(audioCtx.destination);
-            humOsc.start();
-        }
-    } catch(e) {
-        console.warn("Web Audio API initialization failed:", e);
-    }
-}
-
-function triggerZap() {
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-    try {
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        osc.onended = () => {
-            try {
-                osc.disconnect();
-                gainNode.disconnect();
-            } catch (_) {}
-        };
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
-    } catch (e) {
-        console.warn("Trigger zap error:", e);
-    }
-}
-
-function updateHum(activeHands) {
-    if (!audioCtx || !humGain || !humOsc) return;
-    if (audioCtx.state === 'suspended') return;
-    if (activeHands.length < 2 || !activeHands[0][8] || !activeHands[1][8]) {
-        humGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-        return;
-    }
-    const p1 = activeHands[0][8];
-    const p2 = activeHands[1][8];
-    const dx = p1.x - p2.x;
-    const dy = p1.y - p2.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const targetFreq = 100 + (1 - Math.min(dist, 1)) * 300;
-    const targetVolume = 0.05 + (1 - Math.min(dist, 1)) * 0.15;
-    humOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
-    humGain.gain.setTargetAtTime(targetVolume, audioCtx.currentTime, 0.1);
-}
 
 function getDist(p1, p2) {
     return Math.hypot(p1.x - p2.x, p1.y - p2.y);
@@ -326,7 +254,7 @@ function detectGestures() {
                 y: (thumb.y + index.y) / 2
             };
             createShockwave(mapToCanvas(midpoint), themes[currentTheme](time, 1, 1));
-            triggerZap();
+            audioEngine.triggerZap();
             uiGesture.innerText = "PINCH !";
         }
         lastPinchState[idx] = isPinching;
@@ -585,9 +513,7 @@ function initMediaPipe() {
             handVelocities += (targetVel - handVelocities) * 0.25;
 
             currentHands = results.multiHandLandmarks || [];
-            if (audioCtx) {
-                updateHum(currentHands);
-            }
+            audioEngine.updateHum(currentHands);
         });
 
         const camera = new Camera(videoElement, {
