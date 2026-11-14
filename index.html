@@ -326,10 +326,30 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .error-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.92);
+            border: 1px solid rgba(255, 100, 100, 0.4);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 200;
+            font-size: 0.9rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+            max-width: 90vw;
+            text-align: center;
+        }
+
         .hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
+
+    <div id="errorBanner" class="error-banner hidden"></div>
 
     <div id="startOverlay">
         <canvas id="entryParticles"></canvas>
@@ -858,47 +878,68 @@ function renderLoop(timestamp) {
     ctx.globalCompositeOperation = 'source-over';
 }
 
+function showError(msg) {
+    const banner = document.getElementById('errorBanner');
+    if (banner) {
+        banner.textContent = msg;
+        banner.classList.remove('hidden');
+    }
+}
+
 function initMediaPipe() {
-    const hands = new Hands({locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-    }});
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showError("Camera API is not supported in this environment. Please run over HTTPS or localhost.");
+        return;
+    }
 
-    hands.setOptions({
-        maxNumHands: 2,
-        modelComplexity: 0, 
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.4
-    });
+    try {
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
 
-    hands.onResults((results) => {
-        uiHands.innerText = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
-        
-        let targetVel = 0;
-        if (currentHands.length > 0 && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const oldP = currentHands[0][8];
-            const newP = results.multiHandLandmarks[0][8];
-            if (oldP && newP) {
-                targetVel = getDist(oldP, newP);
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 0, 
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.4
+        });
+
+        hands.onResults((results) => {
+            uiHands.innerText = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
+            
+            let targetVel = 0;
+            if (currentHands.length > 0 && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const oldP = currentHands[0][8];
+                const newP = results.multiHandLandmarks[0][8];
+                if (oldP && newP) {
+                    targetVel = getDist(oldP, newP);
+                }
             }
-        }
-        handVelocities += (targetVel - handVelocities) * 0.25;
+            handVelocities += (targetVel - handVelocities) * 0.25;
 
-        currentHands = results.multiHandLandmarks || [];
-        if (audioCtx) {
-            updateHum(currentHands);
-        }
-    });
+            currentHands = results.multiHandLandmarks || [];
+            if (audioCtx) {
+                updateHum(currentHands);
+            }
+        });
 
-    const camera = new Camera(videoElement, {
-        onFrame: async () => {
-            await hands.send({image: videoElement});
-        },
-        width: 1280,
-        height: 720,
-        facingMode: 'user'
-    });
-    
-    camera.start();
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720,
+            facingMode: 'user'
+        });
+        
+        camera.start().catch((err) => {
+            console.error("Camera startup failed:", err);
+            showError("Unable to access camera. Please allow camera permissions and refresh.");
+        });
+    } catch (err) {
+        console.error("MediaPipe initialization error:", err);
+        showError("MediaPipe initialization failed. Please check network connection.");
+    }
 }
 
 </script>
