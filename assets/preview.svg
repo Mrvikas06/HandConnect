@@ -22,14 +22,14 @@
   <rect width="1000" height="562" fill="url(#spaceGrad)"/>
 
   <!-- Matrix rain columns -->
-  <g fill="#00ffcc" opacity="0.22" font-family="monospace" font-size="14">
-    <text x="50" y="80">ｱ</text><text x="50" y="105">ｶ</text><text x="50" y="130">ｻ</text><text x="50" y="155">ﾀ</text>
-    <text x="120" y="140">ﾅ</text><text x="120" y="165">ﾊ</text><text x="120" y="190">ﾏ</text>
-    <text x="240" y="90">ﾔ</text><text x="240" y="115">ﾗ</text><text x="240" y="140">ﾜ</text>
-    <text x="400" y="60">0</text><text x="400" y="85">1</text><text x="400" y="110">0</text><text x="400" y="135">1</text>
-    <text x="600" y="75">X</text><text x="600" y="100">Y</text><text x="600" y="125">Z</text>
-    <text x="820" y="120">ｹ</text><text x="820" y="145">ｺ</text><text x="820" y="170">ｻ</text>
-    <text x="920" y="90">1</text><text x="920" y="115">0</text><text x="920" y="140">1</text>
+  <g fill="#00ffcc" opacity="0.18" font-family="monospace" font-size="14">
+    <text x="50" y="80">ｱ</text><text x="50" y="105">ｶ</text><text x="50" y="130">ｻ</text>
+    <text x="120" y="140">ﾅ</text><text x="120" y="165">ﾊ</text>
+    <text x="240" y="90">ﾔ</text><text x="240" y="115">ﾗ</text>
+    <text x="400" y="60">0</text><text x="400" y="85">1</text>
+    <text x="600" y="75">X</text><text x="600" y="100">Y</text>
+    <text x="820" y="120">ｹ</text><text x="820" y="145">ｺ</text>
+    <text x="920" y="90">1</text><text x="920" y="115">0</text>
   </g>
 
   <!-- HUD overlay (top left) -->
@@ -44,24 +44,26 @@
   <g transform="translate(30, 100)">
     <rect width="200" height="65" rx="10" fill="rgba(20, 25, 40, 0.65)" stroke="rgba(255,255,255,0.15)"/>
     <text x="16" y="28" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11">Gesture:</text>
-    <text x="180" y="28" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="end">Pointing</text>
-    <text x="16" y="48" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11">Spread:</text>
-    <text x="180" y="48" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="end">88%</text>
+    <text x="180" y="28" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="end">Peace</text>
+    <text x="16" y="48" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11">Fret Chord:</text>
+    <text x="180" y="48" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="end">G Major</text>
   </g>
 
   <!-- Controls overlay (top right) -->
-  <g transform="translate(680, 25)">
+  <g transform="translate(630, 25)">
     <!-- Mode Switcher -->
-    <rect width="290" height="36" rx="18" fill="rgba(20, 25, 40, 0.7)" stroke="rgba(255,255,255,0.15)"/>
-    <rect x="5" y="4" width="70" height="28" rx="14" fill="rgba(0, 255, 204, 0.25)" stroke="#00ffcc" stroke-width="0.8"/>
-    <text x="40" y="22" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">All</text>
-    <text x="108" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Web</text>
-    <text x="175" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Orbs</text>
-    <text x="248" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Trails</text>
+    <rect width="340" height="36" rx="18" fill="rgba(20, 25, 40, 0.75)" stroke="rgba(255,255,255,0.15)"/>
+    <rect x="5" y="4" width="55" height="28" rx="14" fill="rgba(255, 255, 255, 0.1)"/>
+    <text x="32" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">All</text>
+    <rect x="65" y="4" width="65" height="28" rx="14" fill="rgba(0, 255, 204, 0.25)" stroke="#00ffcc" stroke-width="0.8"/>
+    <text x="97" y="22" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">Guitar</text>
+    <text x="162" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Web</text>
+    <text x="228" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Orbs</text>
+    <text x="295" y="22" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Trails</text>
 
     <!-- Action Buttons -->
-    <g transform="translate(35, 46)">
-      <rect width="255" height="34" rx="17" fill="rgba(20, 25, 40, 0.7)" stroke="rgba(255,255,255,0.15)"/>
+    <g transform="translate(85, 46)">
+      <rect width="255" height="34" rx="17" fill="rgba(20, 25, 40, 0.75)" stroke="rgba(255,255,255,0.15)"/>
       <rect x="6" y="4" width="75" height="26" rx="13" fill="rgba(255,255,255,0.1)"/>
       <text x="43" y="21" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">Spawn Orb</text>
       <rect x="88" y="4" width="75" height="26" rx="13" fill="rgba(255,255,255,0.1)"/>
@@ -71,80 +73,98 @@
     </g>
   </g>
 
-  <!-- Ribbon Light Trail curve -->
-  <path d="M 220 380 Q 260 260 315 180 T 370 140" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.75" stroke-linecap="round"/>
-  <path d="M 685 180 Q 640 220 590 280 T 520 340" fill="none" stroke="#f43f5e" stroke-width="4" opacity="0.75" stroke-linecap="round"/>
-
-  <!-- Left Hand Skeleton & Strings -->
-  <g filter="url(#laserGlow)" stroke="#00ffcc" stroke-width="2" fill="none">
-    <path d="M 360 420 L 320 350 L 290 280 L 270 230"/>
-    <path d="M 360 420 L 340 330 L 325 250 L 315 180"/>
-    <path d="M 360 420 L 365 320 L 370 240 L 370 170"/>
-    <path d="M 360 420 L 390 330 L 410 250 L 420 190"/>
-    <path d="M 360 420 L 415 350 L 445 280 L 465 230"/>
+  <!-- Virtual Guitar Fretboard & Strings Layer -->
+  <g transform="translate(60, 240)">
+    <!-- Fretboard Board -->
+    <rect width="880" height="220" rx="8" fill="rgba(15, 23, 42, 0.65)" stroke="rgba(255,255,255,0.15)"/>
     
-    <path d="M 270 230 L 315 180 L 370 170 L 420 190 L 465 230 Z" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.8"/>
+    <!-- Vertical Frets -->
+    <line x1="180" y1="0" x2="180" y2="220" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <line x1="330" y1="0" x2="330" y2="220" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <line x1="480" y1="0" x2="480" y2="220" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <line x1="630" y1="0" x2="630" y2="220" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <line x1="770" y1="0" x2="770" y2="220" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+
+    <!-- Fret labels -->
+    <text x="180" y="-8" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="10" text-anchor="middle">Fret 1</text>
+    <text x="330" y="-8" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="10" text-anchor="middle">Fret 2</text>
+    <text x="480" y="-8" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="10" text-anchor="middle">Fret 3</text>
+    <text x="630" y="-8" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="10" text-anchor="middle">Fret 4</text>
+    <text x="770" y="-8" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="10" text-anchor="middle">Fret 5</text>
+
+    <!-- Chord Badge -->
+    <rect x="370" y="-36" width="140" height="24" rx="4" fill="rgba(0, 255, 204, 0.15)" stroke="#00ffcc" stroke-width="1"/>
+    <text x="440" y="-20" fill="#00ffcc" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" text-anchor="middle">Chord: G Major</text>
+
+    <!-- 6 Virtual Guitar Strings -->
+    <!-- E2 (Low E - Vibrating) -->
+    <text x="-15" y="24" fill="#00ffcc" font-family="monospace" font-size="13" font-weight="700" text-anchor="end">E2</text>
+    <path d="M 0 24 Q 440 6 880 24" fill="none" stroke="#00ffcc" stroke-width="4.5" filter="url(#laserGlow)"/>
+    
+    <!-- A2 -->
+    <text x="-15" y="60" fill="rgba(255,255,255,0.6)" font-family="monospace" font-size="13" text-anchor="end">A2</text>
+    <line x1="0" y1="60" x2="880" y2="60" stroke="#38bdf8" stroke-width="3.6" opacity="0.8"/>
+    
+    <!-- D3 (Vibrating) -->
+    <text x="-15" y="96" fill="#ffffff" font-family="monospace" font-size="13" font-weight="700" text-anchor="end">D3</text>
+    <path d="M 0 96 Q 520 114 880 96" fill="none" stroke="#ffffff" stroke-width="3.2" filter="url(#laserGlow)"/>
+    
+    <!-- G3 -->
+    <text x="-15" y="132" fill="rgba(255,255,255,0.6)" font-family="monospace" font-size="13" text-anchor="end">G3</text>
+    <line x1="0" y1="132" x2="880" y2="132" stroke="#a855f7" stroke-width="2.4" opacity="0.8"/>
+    
+    <!-- B3 -->
+    <text x="-15" y="168" fill="rgba(255,255,255,0.6)" font-family="monospace" font-size="13" text-anchor="end">B3</text>
+    <line x1="0" y1="168" x2="880" y2="168" stroke="#ff00cc" stroke-width="1.8" opacity="0.8"/>
+    
+    <!-- E4 (High E - Vibrating) -->
+    <text x="-15" y="204" fill="#00ffcc" font-family="monospace" font-size="13" font-weight="700" text-anchor="end">E4</text>
+    <path d="M 0 204 Q 600 190 880 204" fill="none" stroke="#00ffcc" stroke-width="1.5" filter="url(#laserGlow)"/>
   </g>
 
-  <!-- Pointing Laser Beam from Index (315, 180) -->
-  <line x1="315" y1="180" x2="160" y2="70" stroke="#00ffcc" stroke-width="3" filter="url(#laserGlow)"/>
-  <circle cx="160" cy="70" r="6" fill="#ffffff" filter="url(#laserGlow)"/>
-
-  <!-- Left Hand Fingertips -->
+  <!-- Left Hand (Fretting G Major) -->
+  <g filter="url(#laserGlow)" stroke="#00ffcc" stroke-width="2" fill="none">
+    <path d="M 280 430 L 250 360 L 220 300 L 200 250"/>
+    <path d="M 280 430 L 260 340 L 250 270 L 245 200"/>
+    <path d="M 280 430 L 285 330 L 290 260 L 295 190"/>
+    <path d="M 280 430 L 310 350 L 325 280 L 335 240"/>
+    <path d="M 280 430 L 335 370 L 355 310 L 365 270"/>
+  </g>
   <g fill="#ffffff" filter="url(#laserGlow)">
-    <circle cx="270" cy="230" r="4"/><circle cx="315" cy="180" r="4"/><circle cx="370" cy="170" r="4"/>
-    <circle cx="420" cy="190" r="4"/><circle cx="465" cy="230" r="4"/>
+    <circle cx="200" cy="250" r="4"/><circle cx="245" cy="200" r="4"/><circle cx="295" cy="190" r="4"/>
+    <circle cx="335" cy="240" r="4"/><circle cx="365" cy="270" r="4"/>
   </g>
 
-  <!-- Right Hand Skeleton -->
+  <!-- Right Hand (Strumming downward across D3 and High E) -->
   <g filter="url(#laserGlow)" stroke="#ff00cc" stroke-width="2" fill="none">
-    <path d="M 640 420 L 680 350 L 710 280 L 730 230"/>
-    <path d="M 640 420 L 660 330 L 675 250 L 685 180"/>
-    <path d="M 640 420 L 635 320 L 630 240 L 630 170"/>
-    <path d="M 640 420 L 610 330 L 590 250 L 580 190"/>
-    <path d="M 640 420 L 585 350 L 555 280 L 535 230"/>
-    <path d="M 730 230 L 685 180 L 630 170 L 580 190 L 535 230 Z" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.8"/>
+    <path d="M 680 440 L 695 380 L 710 320 L 720 270"/>
+    <path d="M 680 440 L 665 370 L 655 310 L 640 250"/>
+    <path d="M 680 440 L 640 370 L 625 315 L 610 260"/>
+    <path d="M 680 440 L 615 380 L 600 330 L 590 280"/>
+    <path d="M 680 440 L 590 395 L 575 350 L 565 310"/>
   </g>
-
-  <!-- Right Hand Fingertips -->
   <g fill="#ffffff" filter="url(#laserGlow)">
-    <circle cx="730" cy="230" r="4"/><circle cx="685" cy="180" r="4"/><circle cx="630" cy="170" r="4"/>
-    <circle cx="580" cy="190" r="4"/><circle cx="535" cy="230" r="4"/>
+    <circle cx="720" cy="270" r="4"/><circle cx="640" cy="250" r="5"/><circle cx="610" cy="260" r="4"/>
+    <circle cx="590" cy="280" r="4"/><circle cx="565" cy="310" r="4"/>
   </g>
 
-  <!-- Cross-Hand Interlinks -->
-  <g stroke="url(#glowLine)" stroke-width="2" stroke-opacity="0.7" stroke-dasharray="6 3">
-    <line x1="270" y1="230" x2="730" y2="230"/>
-    <line x1="315" y1="180" x2="685" y2="180"/>
-    <line x1="370" y1="170" x2="630" y2="170"/>
+  <!-- Strum Spark Burst at Intersection -->
+  <g fill="#00ffcc" filter="url(#laserGlow)">
+    <circle cx="640" cy="336" r="5"/>
+    <circle cx="630" cy="328" r="2.5"/><circle cx="652" cy="342" r="2"/>
+    <circle cx="648" cy="326" r="3"/><circle cx="634" cy="348" r="2"/>
   </g>
-
-  <!-- Interactive Physics Orbs with glowing tails -->
-  <g filter="url(#laserGlow)">
-    <!-- Orb 1 -->
-    <circle cx="500" cy="160" r="16" fill="#00ffcc" opacity="0.9"/>
-    <circle cx="496" cy="155" r="5" fill="#ffffff"/>
-    <circle cx="500" cy="185" r="12" fill="#00ffcc" opacity="0.4"/>
-    <!-- Orb 2 -->
-    <circle cx="610" cy="110" r="18" fill="#f59e0b" opacity="0.9"/>
-    <circle cx="605" cy="105" r="6" fill="#ffffff"/>
-    <circle cx="622" cy="130" r="12" fill="#f59e0b" opacity="0.35"/>
-  </g>
-
-  <!-- Pinch Shockwave -->
-  <circle cx="500" cy="200" r="50" fill="none" stroke="#00ffcc" stroke-width="2" opacity="0.6"/>
-  <circle cx="500" cy="200" r="100" fill="none" stroke="#ff00cc" stroke-width="1.5" opacity="0.3"/>
 
   <!-- Themes Navigation (bottom center) -->
-  <g transform="translate(190, 502)">
-    <rect width="620" height="42" rx="21" fill="rgba(20, 25, 40, 0.7)" stroke="rgba(255,255,255,0.15)"/>
-    <rect x="5" y="5" width="80" height="32" rx="16" fill="rgba(255,255,255,0.18)"/>
-    <text x="45" y="26" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">Rainbow</text>
-    <text x="130" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Cyberpunk</text>
-    <text x="215" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Lava</text>
-    <text x="295" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Ocean</text>
-    <text x="375" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Galaxy</text>
-    <text x="460" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Synthwave</text>
-    <text x="550" y="26" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Supernova</text>
+  <g transform="translate(190, 508)">
+    <rect width="620" height="40" rx="20" fill="rgba(20, 25, 40, 0.75)" stroke="rgba(255,255,255,0.15)"/>
+    <rect x="5" y="4" width="80" height="32" rx="16" fill="rgba(255,255,255,0.18)"/>
+    <text x="45" y="24" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">Rainbow</text>
+    <text x="130" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Cyberpunk</text>
+    <text x="215" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Lava</text>
+    <text x="295" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Ocean</text>
+    <text x="375" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Galaxy</text>
+    <text x="460" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Synthwave</text>
+    <text x="550" y="24" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">Supernova</text>
   </g>
 </svg>
