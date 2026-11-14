@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="js/audio.js"></script>
     <script src="js/particles.js"></script>
+    <script src="js/matrix.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -123,7 +124,6 @@
 const videoElement = document.querySelector('.input_video');
 const bgCanvas = document.getElementById('bgCanvas');
 const mainCanvas = document.getElementById('mainCanvas');
-const bgCtx = bgCanvas.getContext('2d');
 const ctx = mainCanvas.getContext('2d');
 
 let width = window.innerWidth;
@@ -147,11 +147,8 @@ const themes = {
 };
 
 const particleSystem = new ParticleSystem(100, 25);
+const matrixRain = new MatrixRain(bgCanvas, 16);
 const FINGER_TIPS = [4, 8, 12, 16, 20];
-
-let matrixColumns = [];
-const fontSize = 16;
-let maxColumns = 0;
 
 const audioEngine = new AudioEngine();
 
@@ -163,13 +160,9 @@ const uiSpread = document.getElementById('ui-spread');
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
-    bgCanvas.width = width;
-    bgCanvas.height = height;
     mainCanvas.width = width;
     mainCanvas.height = height;
-    bgCtx.font = fontSize + "px monospace";
-    maxColumns = Math.floor(width / fontSize);
-    matrixColumns = new Array(maxColumns).fill(1).map(() => Math.random() * height/fontSize);
+    matrixRain.resize(width, height);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -270,28 +263,6 @@ function detectGestures() {
     }
 }
 
-function drawBackground() {
-    bgCtx.globalCompositeOperation = 'destination-out';
-    bgCtx.fillStyle = `rgba(0, 0, 0, ${0.15 + Math.min(handVelocities*10, 0.5)})`;
-    bgCtx.fillRect(0, 0, width, height);
-    bgCtx.globalCompositeOperation = 'source-over';
-
-    bgCtx.fillStyle = themes[currentTheme](time, 1, 1);
-    
-    let speedMult = 1 + (handVelocities * 100);
-
-    for (let i = 0; i < matrixColumns.length; i++) {
-        if (Math.random() > 0.95) {
-            const char = String.fromCharCode(0x30A0 + Math.random() * 96);
-            bgCtx.fillText(char, i * fontSize, matrixColumns[i] * fontSize);
-        }
-        matrixColumns[i] += Math.random() * speedMult;
-        if (matrixColumns[i] * fontSize > height && Math.random() > 0.9) {
-            matrixColumns[i] = 0;
-        }
-    }
-}
-
 function renderLoop(timestamp) {
     requestAnimationFrame(renderLoop);
     
@@ -306,7 +277,7 @@ function renderLoop(timestamp) {
         lastFpsTime = timestamp;
     }
 
-    drawBackground();
+    matrixRain.render(themes[currentTheme](time, 1, 1), handVelocities);
 
     ctx.clearRect(0, 0, width, height);
 
