@@ -423,8 +423,12 @@
         animId = requestAnimationFrame(drawEntry);
     }
     drawEntry();
-    window.addEventListener('resize', () => { ew = epc.width = innerWidth; eh = epc.height = innerHeight; });
-    document.getElementById('startBtn').addEventListener('click', () => cancelAnimationFrame(animId), { once: true });
+    function handleEntryResize() { ew = epc.width = window.innerWidth; eh = epc.height = window.innerHeight; }
+    window.addEventListener('resize', handleEntryResize);
+    document.getElementById('startBtn').addEventListener('click', () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener('resize', handleEntryResize);
+    }, { once: true });
 })();
 
 const videoElement = document.querySelector('.input_video');
@@ -477,6 +481,7 @@ function resize() {
     bgCanvas.height = height;
     mainCanvas.width = width;
     mainCanvas.height = height;
+    bgCtx.font = fontSize + "px monospace";
     maxColumns = Math.floor(width / fontSize);
     matrixColumns = new Array(maxColumns).fill(1).map(() => Math.random() * height/fontSize);
 }
@@ -682,7 +687,6 @@ function drawBackground() {
     bgCtx.globalCompositeOperation = 'source-over';
 
     bgCtx.fillStyle = themes[currentTheme](time, 1, 1);
-    bgCtx.font = fontSize + "px monospace";
     
     let speedMult = 1 + (handVelocities * 100);
 
@@ -754,7 +758,12 @@ function renderLoop(timestamp) {
 
     ctx.clearRect(0, 0, width, height);
 
-    while (particles.length > 100) particles.shift();
+    if (particles.length > 100) {
+        particles.splice(0, particles.length - 100);
+    }
+    if (ripples.length > 25) {
+        ripples.splice(0, ripples.length - 25);
+    }
 
     ctx.globalCompositeOperation = 'screen';
 
@@ -864,17 +873,15 @@ function initMediaPipe() {
     hands.onResults((results) => {
         uiHands.innerText = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
         
+        let targetVel = 0;
         if (currentHands.length > 0 && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            let vSum = 0;
             const oldP = currentHands[0][8];
             const newP = results.multiHandLandmarks[0][8];
             if (oldP && newP) {
-                vSum += getDist(oldP, newP);
-                handVelocities = vSum; 
+                targetVel = getDist(oldP, newP);
             }
-        } else {
-            handVelocities = 0;
         }
+        handVelocities += (targetVel - handVelocities) * 0.25;
 
         currentHands = results.multiHandLandmarks || [];
         if (audioCtx) {
