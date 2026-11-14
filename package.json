@@ -1,0 +1,20 @@
+{
+  "name": "handconnect",
+  "version": "1.0.0",
+  "description": "Real-time browser-based augmented reality hand tracking and visual interactive effects",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -l 3000 .",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "hand-tracking",
+    "mediapipe",
+    "web-audio",
+    "canvas",
+    "augmented-reality",
+    "computer-vision"
+  ],
+  "author": "Vikas Kumar Singh",
+  "license": "MIT"
+}
