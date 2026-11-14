@@ -1,14 +1,14 @@
 # HandConnect
 
-A browser-based augmented reality hand tracking interface and procedural audiovisual system powered by MediaPipe and the Web Audio API.
+A browser-based augmented reality hand tracking interface, interactive physics playground, and procedural audiovisual synthesizer powered by MediaPipe and the Web Audio API.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Browser-informational.svg)](#prerequisites)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands_ML-00ffcc.svg)](https://mediapipe.dev/)
 [![Web Audio API](https://img.shields.io/badge/Web_Audio-Synthesis-ff00cc.svg)](#technology-stack)
-[![Tests](https://img.shields.io/badge/Tests-8_Passed-success.svg)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-11_Passed-success.svg)](#testing)
 
-HandConnect delivers zero-dependency, real-time hand skeleton tracking and geometric visualization directly in the browser. Using a local webcam feed, the system tracks 21 distinct 3D landmarks per hand at 60 FPS, synthesizing dynamic procedural audio, particle physics, and interactive holographic geometry.
+HandConnect delivers zero-dependency, real-time hand skeleton tracking, interactive physics, and generative visualization directly in the browser. Using a standard webcam, the system detects 21 distinct 3D landmarks per hand at 60 FPS, synthesizing dynamic procedural audio, light-painting ribbon trails, gravity-driven energy orbs, and holographic geometry.
 
 ---
 
@@ -21,14 +21,25 @@ HandConnect delivers zero-dependency, real-time hand skeleton tracking and geome
 ## Features
 
 - Real-Time Multi-Hand Tracking: Tracks up to two hands simultaneously with 21 coordinates per hand using MediaPipe Hands ML.
-- Geometric Fingertip Web: Generates an interconnected string lattice between all active fingertips when the hand is open.
-- Cross-Hand Coordinate Linking: Draws synchronized geometric links between matching finger nodes across dual hands with automated mandala rotation.
-- Real-Time Gesture Recognition: Computes hand spread percentages and detects discrete states (Open Hand, Fist, Pinch) with zero latency.
-- Dynamic Shockwave and Particle Physics: Spawns momentum-based particle emitters and expanding radial shockwaves on pinch triggers.
-- Velocity-Modulated Matrix Rain: Dual-canvas matrix rain background that reacts in real-time to hand movement speed.
-- Procedural Audio Engine: Modulates a proximity-based continuous hum oscillator between hands and triggers synthetic frequency-ramped zap effects on pinch.
-- Five Theme Presets: Dynamic color themes including Rainbow, Cyberpunk, Lava, Ocean, and Galaxy.
-- Performance Architecture: Separation of background and foreground canvases, throttled text metrics rendering, smoothed velocity filters, and capped memory buffers.
+- Interactive Visual Modes:
+  - String Web: Interconnected geometric string lattice between fingertips with dual-hand rotating mandalas.
+  - Energy Orbs: Bouncing physics spheres with gravity, momentum, restitution, and fingertip deflection.
+  - Light Trails: Continuous neon light-painting ribbon meshes trailing active finger movements.
+  - All Effects: Full combined audiovisual experience with all visual layers active.
+- Advanced Gesture Recognition:
+  - Pinch: Triggers expanding radial shockwaves and frequency-swept sawtooth audio zaps.
+  - Pointing / Finger Gun: Projects continuous directional laser beams with projectile particle emission.
+  - Peace Sign / Victory: Triggers celebratory celestial arpeggio chimes and starburst particle flares.
+  - Thumbs Up: Triggers golden particle bursts and harmonized feedback tones.
+  - Rock On: Synthesizes electric power chord overdrive and red flame energy bursts.
+  - Dual-Hand Clap: Detects rapid palm collisions, triggering massive sub-bass sonic booms and double shockwaves.
+  - Open Hand & Fist: Dynamically measures finger extension and spread percentages.
+- Procedural Air Harp Synthesizer: Modulates musical notes across a pentatonic scale (C4, D4, E4, G4, A4, C5) as fingertips contact orbs or gesture.
+- Proximity Hum Oscillator: Web Audio sine oscillator continuously modulates frequency and amplitude based on inter-hand distance.
+- Velocity-Modulated Matrix Rain: Dual-canvas digital rain background accelerating in real-time with hand movement.
+- High-Resolution Snapshot Capture: Composites webcam video, matrix background, and AR effects into a downloadable PNG photo.
+- Seven Dynamic Themes: Rainbow, Cyberpunk, Lava, Ocean, Galaxy, Synthwave, and Supernova.
+- Complete Hotkey Support: Instant mode switching, muting, theme cycling, orb spawning, and photo capture via keyboard.
 
 ---
 
@@ -36,16 +47,20 @@ HandConnect delivers zero-dependency, real-time hand skeleton tracking and geome
 
 ![HandConnect System Architecture Diagram](assets/architecture.svg)
 
-The application follows a modular pipeline designed for client-side execution without requiring compilation or bundling steps:
+The application follows an asynchronous client-side pipeline executing at 60 FPS without requiring build tools or bundlers:
 
-1. Video Stream Layer: Captures the camera input using `navigator.mediaDevices.getUserMedia` via MediaPipe Camera utilities.
-2. Machine Learning Inference: MediaPipe Hands ML extracts 21 landmark vectors per detected hand.
-3. Gesture & Coordinate Processor (`js/gestures.js`): Maps normalized screen coordinates to canvas space, computes Euclidean distances, and classifies gestures.
-4. Audio Synthesis Engine (`js/audio.js`): Web Audio API oscillators modulate frequency and gain based on inter-hand proximity and gesture triggers.
-5. Particle & Shockwave Simulator (`js/particles.js`): Manages physics updates, lifecycles, and ring shockwave propagation.
+1. Video Stream Pipeline: Captures webcam input via `navigator.mediaDevices.getUserMedia` using MediaPipe Camera utilities.
+2. Machine Learning Inference: MediaPipe Hands ML processes frames and extracts 21 3D landmark vectors per detected hand.
+3. Gesture Recognition Engine (`js/gestures.js`): Analyzes individual joint extension states, Euclidean distance ratios, hand velocity vectors, and multi-hand collision dynamics.
+4. Procedural Audio Synthesizer (`js/audio.js`): Web Audio API oscillators synthesize proximity hums, zap sweeps, sub-bass impacts, laser bursts, and pentatonic tones.
+5. Physics Simulator (`js/orbs.js`, `js/particles.js`, `js/trails.js`):
+   - Computes gravity, wall reflections, and hand mesh collisions for energy orbs.
+   - Updates life cycles and alpha curves for particles and radial shockwaves.
+   - Smooths historical point queues for flowing neon ribbon meshes.
 6. Dual-Layer Canvas Renderer:
    - Background Canvas (`js/matrix.js`): Renders Katakana digital rain with alpha-fading trail effects.
-   - Foreground Canvas (`js/app.js`): Draws bone segments, fingertip nodes, inter-finger string webs, cross-hand mandalas, and particles.
+   - Foreground Canvas (`js/app.js`): Composites bone segments, string webs, orbs, lasers, trails, and mandalas.
+7. Snapshot Compositor: Merges camera, background, and foreground canvases with timestamps into high-resolution PNG exports.
 
 ---
 
@@ -74,11 +89,13 @@ HandConnect/
 │   └── style.css              # Application layout, HUD, and glassmorphism styling
 ├── js/
 │   ├── app.js                 # Main application controller and render loop
-│   ├── audio.js               # Procedural audio synthesis engine
+│   ├── audio.js               # Procedural audio synthesis and air harp engine
 │   ├── gestures.js            # Gesture recognition, bone calculation, and coordinate mapping
 │   ├── matrix.js              # Background matrix rain canvas generator
+│   ├── orbs.js                # Bouncing interactive energy physics orbs
 │   ├── particles.js           # Particle emitters and radial shockwave simulator
-│   └── tracker.js             # MediaPipe camera wrapper and error handler
+│   ├── tracker.js             # MediaPipe camera wrapper and error handler
+│   └── trails.js              # Neon ribbon light-painting trails
 ├── tests/
 │   └── gestures.test.js       # Unit tests for geometry, gestures, and physics
 ├── index.html                 # Semantic entry point
@@ -133,35 +150,56 @@ The application is deployed directly to GitHub Pages at:
 
 ---
 
-## Configuration and Theme Settings
+## Gestures and Interactions Guide
 
-Themes are selectable from the bottom navigation bar or programmatically through `app.currentTheme`. Each theme defines mathematical color gradients over time and landmark indices:
+| Gesture | Detection Criteria | Audio & Visual Response |
+| :--- | :--- | :--- |
+| Open Hand | Spread distance > 0.15 with extended fingers | Interconnected fingertip string web appears |
+| Fist | All fingers curled toward palm | String lattice collapses cleanly, skeleton bones remain |
+| Pinch | Thumb and index fingertip distance < 0.05 | Radial shockwave emitted, 800 Hz to 40 Hz sawtooth zap triggered |
+| Pointing | Index extended, middle/ring/pinky curled | Projects directional laser beam with particle discharge |
+| Peace Sign | Index and middle extended, ring/pinky curled | Synthesizes celestial arpeggio chime with starburst particles |
+| Thumbs Up | Thumb extended upward, other fingers curled | Emits golden particle fountain and affirmative tone |
+| Rock On | Index and pinky extended, middle/ring curled | Triggers electric power chord overdrive and red flame aura |
+| Dual Clap | Rapid collision between both wrists/palms | Triggers sub-bass sonic boom impact and double shockwaves |
+| Fast Move | Hand velocity vector > 0.05 | Matrix rain columns accelerate proportionally |
 
-| Theme Name | Description | Color Generation Strategy |
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Function | Description |
+| :--- | :--- | :--- |
+| `1` | Mode: All | Enables all visual effects simultaneously |
+| `2` | Mode: Web | Focuses on string lattice and cross-hand mandala |
+| `3` | Mode: Orbs | Activates bouncing hand energy orb physics |
+| `4` | Mode: Trails | Activates neon ribbon light painting trails |
+| `Space` | Spawn Orb | Spawns a new interactive bouncing orb |
+| `C` | Snapshot | Captures and downloads high-resolution photo |
+| `M` | Mute | Toggles audio synthesizer output on/off |
+| `T` | Theme | Cycles to the next color theme |
+
+---
+
+## Theme Presets
+
+Themes can be changed through the bottom theme bar or by pressing `T`:
+
+| Theme Name | Visual Tone | Mathematical Color Strategy |
 | :--- | :--- | :--- |
 | Rainbow | Spectrum cycle | `hsl((t * 100 + index * (360 / total)) % 360, 100%, 60%)` |
 | Cyberpunk | Dual contrast | Alternating `#ff003c` (Crimson) and `#00f0ff` (Cyan) |
 | Lava | Thermal pulse | Warm hue band (10 deg to 40 deg) with sine-modulated lightness |
-| Ocean | Oceanic cool | Cyan and blue spectrum (180 deg to 280 deg) |
+| Ocean | Oceanic cool | Cyan and deep blue spectrum (180 deg to 280 deg) |
 | Galaxy | Deep ultraviolet | Violet base (260 deg) with harmonic oscillation |
-
----
-
-## Gestures Guide
-
-| Gesture | Trigger Criteria | Visual & Audio Response |
-| :--- | :--- | :--- |
-| Open Hand | Distance between index and pinky tip > 0.17 | Fingertip string lattice connecting all five fingers |
-| Fist | Distance between index and pinky tip < 0.17 | Skeleton connectors remain visible, string lattice collapses |
-| Pinch | Distance between thumb and index tip < 0.05 | Radial shockwave emitted, 800 Hz to 40 Hz sawtooth zap triggered |
-| Dual Hands | Two hands simultaneously detected | Cross-hand link strands and rotating geometric mandala |
-| Fast Movement | Smoothed velocity vector > 0.05 | Matrix rain columns accelerate proportionally |
+| Synthwave | Neon sunset | Retro magenta-to-orange gradient (310 deg to 370 deg) |
+| Supernova | Solar flare | Radiant gold (45 deg) with high-intensity pulsing lightness |
 
 ---
 
 ## Testing
 
-The project includes unit tests covering coordinate mapping, gesture thresholds, particle lifecycle pruning, and theme generators.
+The project includes unit tests covering coordinate mapping, gesture classifiers, physics orb boundaries, ribbon trails, and theme generators.
 
 Execute the test suite using Node.js:
 
@@ -178,9 +216,12 @@ Sample output:
 ✔ GestureDetector: detects open hand and fist based on spread
 ✔ GestureDetector: detects pinch and midpoint
 ✔ ParticleSystem: manages particle and shockwave capacity and lifecycle
+✔ GestureDetector: detects specialized gestures (Peace, Pointing, Rock On, Thumbs Up, Clap)
 ✔ Themes: all themes return valid color definitions
-ℹ tests 8
-ℹ pass 8
+✔ PhysicsOrbs: updates position and manages orb capacities
+✔ RibbonTrails: manages tracks and point lifecycles
+ℹ tests 11
+ℹ pass 11
 ℹ fail 0
 ```
 
