@@ -12,6 +12,7 @@ const {
 const { ParticleSystem } = require('../js/particles.js');
 const { OrbManager, PhysicsOrb } = require('../js/orbs.js');
 const { RibbonTrails } = require('../js/trails.js');
+const { VirtualGuitar, GuitarString } = require('../js/guitar.js');
 const { themes } = require('../js/app.js');
 
 test('Geometry: getDist calculates Euclidean distance correctly', () => {
@@ -195,4 +196,36 @@ test('RibbonTrails: manages tracks and point lifecycles', () => {
         ribbons.update();
     }
     assert.strictEqual(ribbons.tracks.has(1), false, 'Dead tracks pruned automatically');
+});
+
+test('VirtualGuitar: manages 6 strings, frets, and strumming collisions', () => {
+    const guitar = new VirtualGuitar();
+    assert.strictEqual(guitar.strings.length, 6);
+    assert.strictEqual(guitar.strings[0].name, 'E2');
+    assert.strictEqual(guitar.strings[5].name, 'E4');
+
+    guitar.layout(1000, 800);
+    assert.ok(guitar.strings[0].y < guitar.strings[5].y, 'Strings lay out in descending pitch order');
+
+    // Pluck test
+    assert.strictEqual(guitar.strings[0].vibrationAmp, 0);
+    guitar.strings[0].pluck(0.5, 1.0);
+    assert.ok(guitar.strings[0].vibrationAmp > 10, 'Pluck triggers vibration amplitude');
+
+    guitar.update(0.1);
+    assert.ok(guitar.strings[0].vibrationAmp < 22, 'Vibration decays over time');
+
+    // Chords test with two hands
+    const handLeft = Array(21).fill(null).map(() => ({ x: 0.2, y: 0.8 }));
+    // Peace gesture on left hand
+    handLeft[6] = { x: 0.2, y: 0.5 }; handLeft[8] = { x: 0.2, y: 0.2 };
+    handLeft[10] = { x: 0.25, y: 0.5 }; handLeft[12] = { x: 0.25, y: 0.2 };
+    handLeft[14] = { x: 0.3, y: 0.5 }; handLeft[16] = { x: 0.3, y: 0.55 };
+    handLeft[18] = { x: 0.35, y: 0.5 }; handLeft[20] = { x: 0.35, y: 0.55 };
+
+    const handRight = Array(21).fill(null).map(() => ({ x: 0.8, y: 0.8 }));
+    const detector = new GestureDetector();
+    guitar.updateChords([handLeft, handRight], detector);
+    assert.strictEqual(guitar.chordName, 'G Major');
+    assert.strictEqual(guitar.fretOffset, 3);
 });
