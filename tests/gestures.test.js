@@ -229,3 +229,14 @@ test('VirtualGuitar: manages 6 strings, frets, and strumming collisions', () => 
     assert.strictEqual(guitar.chordName, 'G Major');
     assert.strictEqual(guitar.fretOffset, 3);
 });
+
+test('VirtualGuitar: finger strings anchor to hand joints and detect plucks', () => {
+    const guitar = new VirtualGuitar();
+    const mockHand = Array(21).fill(null).map((_, i) => ({ x: 0.4 + i * 0.01, y: 0.4 + i * 0.01 }));
+    guitar.updateFingerCoordinates([mockHand], 1000, 800);
+    assert.strictEqual(guitar.strings[0].isActive, true);
+    assert.strictEqual(guitar.strings[1].isActive, true);
+    assert.ok(guitar.strings[1].end.x > 0);
+    assert.ok(guitar.strings[1].start.x > 0);
+    assert.ok(guitar.strings[1].extended.x > 0);
+});
