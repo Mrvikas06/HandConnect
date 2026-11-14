@@ -352,3 +352,86 @@ body {
     opacity: 0 !important;
     pointer-events: none !important;
 }
+
+#controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.controls-group {
+    display: flex;
+    gap: 8px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 6px 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.control-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 6px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.control-btn.active {
+    background: rgba(0, 255, 204, 0.2);
+    border-color: rgba(0, 255, 204, 0.5);
+    color: #00ffcc;
+    font-weight: 600;
+}
+
+.control-btn.action {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.control-btn.action:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--accent);
+}
+
+.keyboard-hints {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 10px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+}
+
+#snapshotFlash {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity 0.4s ease-out;
+}
+
+#snapshotFlash.flash {
+    opacity: 0.85;
+    transition: none;
+}
