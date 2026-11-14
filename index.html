@@ -492,7 +492,10 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
     });
 });
 
+let appStarted = false;
 document.getElementById('startBtn').addEventListener('click', () => {
+    if (appStarted) return;
+    appStarted = true;
     document.getElementById('startOverlay').classList.add('hidden');
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('themes').classList.remove('hidden');
@@ -503,38 +506,61 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 function initAudio() {
     try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        humOsc = audioCtx.createOscillator();
-        humGain = audioCtx.createGain();
-        humOsc.type = 'sine';
-        humOsc.frequency.value = 100;
-        humGain.gain.value = 0;
-        humOsc.connect(humGain);
-        humGain.connect(audioCtx.destination);
-        humOsc.start();
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!audioCtx) {
+            audioCtx = new AudioContextClass();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        if (!humOsc) {
+            humOsc = audioCtx.createOscillator();
+            humGain = audioCtx.createGain();
+            humOsc.type = 'sine';
+            humOsc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            humGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            humOsc.connect(humGain);
+            humGain.connect(audioCtx.destination);
+            humOsc.start();
+        }
     } catch(e) {
-        console.error("Web Audio API failed", e);
+        console.warn("Web Audio API initialization failed:", e);
     }
 }
 
 function triggerZap() {
     if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.15);
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    try {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.onended = () => {
+            try {
+                osc.disconnect();
+                gainNode.disconnect();
+            } catch (_) {}
+        };
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+    } catch (e) {
+        console.warn("Trigger zap error:", e);
+    }
 }
 
 function updateHum(activeHands) {
-    if (!audioCtx || !humGain) return;
-    if (activeHands.length < 2) {
+    if (!audioCtx || !humGain || !humOsc) return;
+    if (audioCtx.state === 'suspended') return;
+    if (activeHands.length < 2 || !activeHands[0][8] || !activeHands[1][8]) {
         humGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
         return;
     }
@@ -789,8 +815,6 @@ function initMediaPipe() {
     });
 
     hands.onResults((results) => {
-        if (!audioCtx) return;
-
         uiHands.innerText = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
         
         if (currentHands.length > 0 && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
@@ -806,7 +830,9 @@ function initMediaPipe() {
         }
 
         currentHands = results.multiHandLandmarks || [];
-        updateHum(currentHands);
+        if (audioCtx) {
+            updateHum(currentHands);
+        }
     });
 
     const camera = new Camera(videoElement, {
