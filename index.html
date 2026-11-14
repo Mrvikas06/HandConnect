@@ -14,6 +14,7 @@
     <script src="js/audio.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/matrix.js"></script>
+    <script src="js/gestures.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -188,78 +189,15 @@ document.getElementById('startBtn').addEventListener('click', () => {
     requestAnimationFrame(renderLoop);
 });
 
-function getDist(p1, p2) {
-    return Math.hypot(p1.x - p2.x, p1.y - p2.y);
-}
+const gestureDetector = new GestureDetector();
 
-function mapToCanvas(point) {
-    return { x: point.x * width, y: point.y * height };
-}
-
-let lastPinchState = [false, false];
-
-const HAND_CONNECTIONS_DEFAULT = [
-    [0, 1], [1, 2], [2, 3], [3, 4],
-    [0, 5], [5, 6], [6, 7], [7, 8],
-    [5, 9], [9, 10], [10, 11], [11, 12],
-    [9, 13], [13, 14], [14, 15], [15, 16],
-    [13, 17], [0, 17], [17, 18], [18, 19], [19, 20]
-];
-
-function drawHandBones(context, landmarks, color) {
-    if (typeof drawConnectors === 'function' && typeof HAND_CONNECTIONS !== 'undefined') {
-        drawConnectors(context, landmarks, HAND_CONNECTIONS, { color: color, lineWidth: 2 });
-        return;
-    }
-    const connections = (typeof HAND_CONNECTIONS !== 'undefined') ? HAND_CONNECTIONS : HAND_CONNECTIONS_DEFAULT;
-    context.strokeStyle = color;
-    context.lineWidth = 2;
-    for (let i = 0; i < connections.length; i++) {
-        const p1 = landmarks[connections[i][0]];
-        const p2 = landmarks[connections[i][1]];
-        if (p1 && p2) {
-            context.beginPath();
-            context.moveTo(p1.x * width, p1.y * height);
-            context.lineTo(p2.x * width, p2.y * height);
-            context.stroke();
-        }
-    }
-}
-
-function detectGestures() {
-    if (!currentHands.length) {
-        uiGesture.innerText = "None";
-        uiSpread.innerText = "0%";
-        lastPinchState = [false, false];
-        return;
-    }
-    
-    currentHands.forEach((hand, idx) => {
-        if (!hand || !hand[4] || !hand[8]) return;
-        const thumb = hand[4];
-        const index = hand[8];
-        const dist = getDist(thumb, index);
-        const isPinching = dist < 0.05;
-        
-        if (isPinching && !lastPinchState[idx]) {
-            const midpoint = {
-                x: (thumb.x + index.x) / 2, 
-                y: (thumb.y + index.y) / 2
-            };
-            particleSystem.emitShockwave(mapToCanvas(midpoint), themes[currentTheme](time, 1, 1));
-            audioEngine.triggerZap();
-            uiGesture.innerText = "PINCH !";
-        }
-        lastPinchState[idx] = isPinching;
-    });
-
-    if (currentHands[0] && currentHands[0][8] && currentHands[0][20]) {
-        const spread = getDist(currentHands[0][8], currentHands[0][20]);
-        let spreadPct = Math.min(Math.round(spread * 300), 100);
-        uiSpread.innerText = spreadPct + '%';
-        if (!lastPinchState.includes(true)) {
-            uiGesture.innerText = spreadPct > 50 ? "Open Hand" : "Fist";
-        }
+function updateGestures() {
+    const res = gestureDetector.detect(currentHands);
+    uiGesture.innerText = res.gesture;
+    uiSpread.innerText = res.spreadPct + '%';
+    if (res.newPinch && res.midpoint) {
+        particleSystem.emitShockwave(mapToCanvas(res.midpoint, width, height), themes[currentTheme](time, 1, 1));
+        audioEngine.triggerZap();
     }
 }
 
@@ -290,10 +228,10 @@ function renderLoop(timestamp) {
         currentHands.forEach((hand, handIndex) => {
             const glowColor = themes[currentTheme](time, handIndex, 2);
             
-            drawHandBones(ctx, hand, glowColor);
+            drawHandBones(ctx, hand, glowColor, width, height);
             
             FINGER_TIPS.forEach((tipIndex, idx) => {
-                const pt = mapToCanvas(hand[tipIndex]);
+                const pt = mapToCanvas(hand[tipIndex], width, height);
                 const tipCol = themes[currentTheme](time, idx, FINGER_TIPS.length);
                 
                 ctx.beginPath();
@@ -308,7 +246,7 @@ function renderLoop(timestamp) {
 
             const spread = getDist(hand[8], hand[20]);
             if (spread > 0.08) {
-                const tips = FINGER_TIPS.map(t => mapToCanvas(hand[t]));
+                const tips = FINGER_TIPS.map(t => mapToCanvas(hand[t], width, height));
                 for (let a = 0; a < tips.length; a++) {
                     for (let b = a + 1; b < tips.length; b++) {
                         ctx.beginPath();
@@ -329,8 +267,8 @@ function renderLoop(timestamp) {
             const h2 = currentHands[1];
 
             FINGER_TIPS.forEach((tipIndex, idx) => {
-                const pt1 = mapToCanvas(h1[tipIndex]);
-                const pt2 = mapToCanvas(h2[tipIndex]);
+                const pt1 = mapToCanvas(h1[tipIndex], width, height);
+                const pt2 = mapToCanvas(h2[tipIndex], width, height);
                 const col = themes[currentTheme](time, idx, FINGER_TIPS.length);
 
                 ctx.beginPath();
@@ -344,8 +282,8 @@ function renderLoop(timestamp) {
             ctx.globalAlpha = 1;
 
             if (h1 && h2) {
-                let allTips = FINGER_TIPS.map(t => mapToCanvas(h1[t])).concat(
-                              FINGER_TIPS.map(t => mapToCanvas(h2[t])) );
+                let allTips = FINGER_TIPS.map(t => mapToCanvas(h1[t], width, height)).concat(
+                              FINGER_TIPS.map(t => mapToCanvas(h2[t], width, height)) );
                 
                 ctx.save();
                 let cx = allTips.reduce((sum, p) => sum + p.x, 0) / 10;
@@ -367,9 +305,9 @@ function renderLoop(timestamp) {
                 ctx.restore();
             }
         }
-        
-        detectGestures();
     }
+    
+    updateGestures();
     
     ctx.globalCompositeOperation = 'source-over';
 }
