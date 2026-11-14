@@ -15,6 +15,7 @@
     <script src="js/particles.js"></script>
     <script src="js/matrix.js"></script>
     <script src="js/gestures.js"></script>
+    <script src="js/tracker.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -321,24 +322,13 @@ function showError(msg) {
 }
 
 function initMediaPipe() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showError("Camera API is not supported in this environment. Please run over HTTPS or localhost.");
-        return;
-    }
-
-    try {
-        const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
-
-        hands.setOptions({
-            maxNumHands: 2,
-            modelComplexity: 0, 
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.4
-        });
-
-        hands.onResults((results) => {
+    const tracker = new HandTracker(videoElement, {
+        maxNumHands: 2,
+        modelComplexity: 0,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.4
+    }, {
+        onResults: (results) => {
             uiHands.innerText = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
             
             let targetVel = 0;
@@ -353,25 +343,14 @@ function initMediaPipe() {
 
             currentHands = results.multiHandLandmarks || [];
             audioEngine.updateHum(currentHands);
-        });
+        },
+        onError: (err) => {
+            console.error("Tracker error:", err);
+            showError(err.message || "Failed to start camera or tracking.");
+        }
+    });
 
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 1280,
-            height: 720,
-            facingMode: 'user'
-        });
-        
-        camera.start().catch((err) => {
-            console.error("Camera startup failed:", err);
-            showError("Unable to access camera. Please allow camera permissions and refresh.");
-        });
-    } catch (err) {
-        console.error("MediaPipe initialization error:", err);
-        showError("MediaPipe initialization failed. Please check network connection.");
-    }
+    tracker.start();
 }
 
 </script>
