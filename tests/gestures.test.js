@@ -10,6 +10,8 @@ const {
 } = require('../js/gestures.js');
 
 const { ParticleSystem } = require('../js/particles.js');
+const { OrbManager, PhysicsOrb } = require('../js/orbs.js');
+const { RibbonTrails } = require('../js/trails.js');
 const { themes } = require('../js/app.js');
 
 test('Geometry: getDist calculates Euclidean distance correctly', () => {
@@ -166,4 +168,31 @@ test('Themes: all themes return valid color definitions', () => {
         const color = themes[name](1.5, 0, 5);
         assert.ok(typeof color === 'string' && color.length > 0, `Theme ${name} returns valid color string`);
     });
+});
+
+test('PhysicsOrbs: updates position and manages orb capacities', () => {
+    const manager = new OrbManager(3);
+    manager.reset(1000, 800, 3, '#00ffcc');
+    assert.strictEqual(manager.orbs.length, 3);
+
+    const initialVy = manager.orbs[0].vy;
+    manager.update(1000, 800, [], null, null);
+    assert.ok(manager.orbs[0].vy > initialVy, 'Gravity accelerates orb downward');
+
+    manager.spawn(1000, 800, '#ff003c'); // Already at max 3
+    assert.strictEqual(manager.orbs.length, 3);
+});
+
+test('RibbonTrails: manages tracks and point lifecycles', () => {
+    const ribbons = new RibbonTrails(10);
+    ribbons.addPoint(1, 100, 100, '#00ffcc');
+    ribbons.addPoint(1, 105, 105, '#00ffcc');
+
+    assert.ok(ribbons.tracks.has(1));
+    assert.strictEqual(ribbons.tracks.get(1).length, 2);
+
+    for (let i = 0; i < 35; i++) {
+        ribbons.update();
+    }
+    assert.strictEqual(ribbons.tracks.has(1), false, 'Dead tracks pruned automatically');
 });

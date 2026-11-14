@@ -29,11 +29,14 @@ class HandConnectApp {
         this.currentHands = [];
         this.handVelocities = 0;
         this.currentTheme = 'Rainbow';
+        this.currentMode = 'all'; // 'all', 'web', 'orbs', 'trails'
 
-        this.audioEngine = new AudioEngine();
-        this.particleSystem = new ParticleSystem(100, 25);
-        this.matrixRain = new MatrixRain(this.bgCanvas, 16);
-        this.gestureDetector = new GestureDetector();
+        this.audioEngine = typeof AudioEngine !== 'undefined' ? new AudioEngine() : null;
+        this.particleSystem = typeof ParticleSystem !== 'undefined' ? new ParticleSystem(120, 30) : null;
+        this.matrixRain = (typeof MatrixRain !== 'undefined' && this.bgCanvas) ? new MatrixRain(this.bgCanvas, 16) : null;
+        this.gestureDetector = typeof GestureDetector !== 'undefined' ? new GestureDetector() : null;
+        this.orbManager = typeof OrbManager !== 'undefined' ? new OrbManager(5) : null;
+        this.ribbonTrails = typeof RibbonTrails !== 'undefined' ? new RibbonTrails(26) : null;
         this.tracker = null;
 
         this.uiHands = document.getElementById('ui-hands');
@@ -125,20 +128,108 @@ class HandConnectApp {
     setupEventListeners() {
         window.addEventListener('resize', () => this.resize());
 
+        // Theme selection
         document.querySelectorAll('.theme-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.theme-btn').forEach((b) => b.classList.remove('active'));
                 const target = e.currentTarget;
                 target.classList.add('active');
-                this.currentTheme = target.getAttribute('data-theme') || 'Rainbow';
-                document.documentElement.style.setProperty('--accent', themes[this.currentTheme](0, 1, 1));
+                this.setTheme(target.getAttribute('data-theme') || 'Rainbow');
             });
+        });
+
+        // Mode selection
+        document.querySelectorAll('#modeGroup .control-btn').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('#modeGroup .control-btn').forEach((b) => b.classList.remove('active'));
+                const target = e.currentTarget;
+                target.classList.add('active');
+                this.setMode(target.getAttribute('data-mode') || 'all');
+            });
+        });
+
+        // Action buttons
+        const btnSpawn = document.getElementById('btnSpawnOrb');
+        if (btnSpawn) {
+            btnSpawn.addEventListener('click', () => {
+                if (this.orbManager) {
+                    const col = themes[this.currentTheme](this.time, 1, 1);
+                    this.orbManager.spawn(this.width, this.height, col);
+                }
+            });
+        }
+
+        const btnSnapshot = document.getElementById('btnSnapshot');
+        if (btnSnapshot) {
+            btnSnapshot.addEventListener('click', () => this.captureSnapshot());
+        }
+
+        const btnMute = document.getElementById('btnMute');
+        if (btnMute) {
+            btnMute.addEventListener('click', () => {
+                if (this.audioEngine) {
+                    const isMuted = this.audioEngine.toggleMute();
+                    btnMute.innerText = isMuted ? 'Unmute' : 'Mute';
+                }
+            });
+        }
+
+        // Global keyboard hotkeys
+        window.addEventListener('keydown', (e) => {
+            if (!this.appStarted) return;
+            const key = e.key.toLowerCase();
+
+            if (key === '1') this.setMode('all');
+            else if (key === '2') this.setMode('web');
+            else if (key === '3') this.setMode('orbs');
+            else if (key === '4') this.setMode('trails');
+            else if (key === 'm') {
+                if (btnMute) btnMute.click();
+            } else if (key === 'c') {
+                this.captureSnapshot();
+            } else if (key === 't') {
+                this.cycleNextTheme();
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                if (btnSpawn) btnSpawn.click();
+            }
         });
 
         const startBtn = document.getElementById('startBtn');
         if (startBtn) {
             startBtn.addEventListener('click', () => this.start());
         }
+    }
+
+    setMode(mode) {
+        this.currentMode = mode;
+        document.querySelectorAll('#modeGroup .control-btn').forEach((b) => {
+            if (b.getAttribute('data-mode') === mode) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+    }
+
+    setTheme(themeName) {
+        if (!themes[themeName]) return;
+        this.currentTheme = themeName;
+        document.documentElement.style.setProperty('--accent', themes[this.currentTheme](0, 1, 1));
+        document.querySelectorAll('.theme-btn').forEach((b) => {
+            if (b.getAttribute('data-theme') === themeName) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+    }
+
+    cycleNextTheme() {
+        const themeList = Object.keys(themes);
+        const currentIndex = themeList.indexOf(this.currentTheme);
+        const nextTheme = themeList[(currentIndex + 1) % themeList.length];
+        this.setTheme(nextTheme);
     }
 
     resize() {
@@ -167,13 +258,19 @@ class HandConnectApp {
 
         const overlay = document.getElementById('startOverlay');
         const hud = document.getElementById('hud');
+        const controls = document.getElementById('controls');
         const themesBar = document.getElementById('themes');
 
         if (overlay) overlay.classList.add('hidden');
         if (hud) hud.classList.remove('hidden');
+        if (controls) controls.classList.remove('hidden');
         if (themesBar) themesBar.classList.remove('hidden');
 
-        this.audioEngine.init();
+        if (this.audioEngine) this.audioEngine.init();
+        if (this.orbManager) {
+            this.orbManager.reset(this.width, this.height, 3, themes[this.currentTheme](0, 1, 1));
+        }
+
         this.initTracker();
         this.renderLoop(performance.now());
     }
@@ -204,7 +301,9 @@ class HandConnectApp {
                     this.handVelocities += (targetVel - this.handVelocities) * 0.25;
 
                     this.currentHands = results.multiHandLandmarks || [];
-                    this.audioEngine.updateHum(this.currentHands);
+                    if (this.audioEngine) {
+                        this.audioEngine.updateHum(this.currentHands);
+                    }
                 },
                 onError: (err) => {
                     console.error("Tracker error:", err);
@@ -217,15 +316,138 @@ class HandConnectApp {
     }
 
     updateGestures() {
+        if (!this.gestureDetector) return;
         const res = this.gestureDetector.detect(this.currentHands);
         if (this.uiGesture) this.uiGesture.innerText = res.gesture;
         if (this.uiSpread) this.uiSpread.innerText = `${res.spreadPct}%`;
 
+        const themeCol = themes[this.currentTheme](this.time, 1, 1);
+
+        // Pinch reaction
         if (res.newPinch && res.midpoint) {
             const mapped = mapToCanvas(res.midpoint, this.width, this.height);
-            this.particleSystem.emitShockwave(mapped, themes[this.currentTheme](this.time, 1, 1));
-            this.audioEngine.triggerZap();
+            if (this.particleSystem) {
+                this.particleSystem.emitShockwave(mapped, themeCol);
+            }
+            if (this.audioEngine) {
+                this.audioEngine.triggerZap();
+            }
         }
+
+        // Clap reaction
+        if (res.isClapping) {
+            if (this.particleSystem) {
+                this.particleSystem.emitShockwave({ x: this.width * 0.5, y: this.height * 0.5 }, '#ffffff');
+                this.particleSystem.emitShockwave({ x: this.width * 0.5, y: this.height * 0.5 }, themeCol);
+            }
+            if (this.audioEngine) {
+                this.audioEngine.triggerClap();
+            }
+        }
+
+        // Gesture state change reactions
+        if (res.newGesture) {
+            if (res.gesture === 'Peace') {
+                if (this.audioEngine) this.audioEngine.triggerChime();
+                if (this.particleSystem && this.currentHands[0]) {
+                    const tip = mapToCanvas(this.currentHands[0][8], this.width, this.height);
+                    this.particleSystem.emit(tip, '#38bdf8', 12);
+                }
+            } else if (res.gesture === 'Thumbs Up') {
+                if (this.audioEngine) this.audioEngine.triggerChime();
+                if (this.particleSystem && this.currentHands[0]) {
+                    const tip = mapToCanvas(this.currentHands[0][4], this.width, this.height);
+                    this.particleSystem.emit(tip, '#fbbf24', 16);
+                }
+            } else if (res.gesture === 'Rock On') {
+                if (this.audioEngine) this.audioEngine.triggerHorns();
+                if (this.particleSystem && this.currentHands[0]) {
+                    const tip = mapToCanvas(this.currentHands[0][8], this.width, this.height);
+                    this.particleSystem.emit(tip, '#f43f5e', 14);
+                }
+            }
+        }
+
+        // Continuous pointing laser
+        if (res.gesture === 'Pointing' && res.pointingRay) {
+            const origin = mapToCanvas(res.pointingRay.origin, this.width, this.height);
+            const target = {
+                x: origin.x + res.pointingRay.dir.x * 240,
+                y: origin.y + res.pointingRay.dir.y * 240
+            };
+            this.ctx.beginPath();
+            this.ctx.moveTo(origin.x, origin.y);
+            this.ctx.lineTo(target.x, target.y);
+            this.ctx.strokeStyle = themeCol;
+            this.ctx.lineWidth = 3;
+            this.ctx.stroke();
+
+            if (Math.random() > 0.6) {
+                if (this.particleSystem) {
+                    this.particleSystem.emit(target, themeCol, 2);
+                }
+                if (this.audioEngine && Math.random() > 0.8) {
+                    this.audioEngine.triggerLaser();
+                }
+            }
+        }
+    }
+
+    captureSnapshot() {
+        const flash = document.getElementById('snapshotFlash');
+        if (flash) {
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 100);
+        }
+
+        const snapCanvas = document.createElement('canvas');
+        snapCanvas.width = this.width;
+        snapCanvas.height = this.height;
+        const sctx = snapCanvas.getContext('2d');
+
+        // Draw camera video feed (mirrored)
+        if (this.videoElement && this.videoElement.readyState >= 2) {
+            sctx.save();
+            sctx.translate(this.width, 0);
+            sctx.scale(-1, 1);
+            sctx.drawImage(this.videoElement, 0, 0, this.width, this.height);
+            sctx.restore();
+        } else {
+            sctx.fillStyle = '#050510';
+            sctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        // Draw background canvas (matrix rain)
+        if (this.bgCanvas) {
+            sctx.save();
+            sctx.translate(this.width, 0);
+            sctx.scale(-1, 1);
+            sctx.drawImage(this.bgCanvas, 0, 0);
+            sctx.restore();
+        }
+
+        // Draw main foreground AR canvas
+        if (this.mainCanvas) {
+            sctx.save();
+            sctx.translate(this.width, 0);
+            sctx.scale(-1, 1);
+            sctx.drawImage(this.mainCanvas, 0, 0);
+            sctx.restore();
+        }
+
+        // Watermark and date
+        sctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        sctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif';
+        sctx.fillText('HandConnect AR', 30, this.height - 30);
+        sctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        sctx.font = '12px monospace';
+        sctx.fillText(new Date().toLocaleString(), 30, this.height - 14);
+
+        // Download PNG
+        const link = document.createElement('a');
+        link.download = `handconnect-snapshot-${Date.now()}.png`;
+        link.href = snapCanvas.toDataURL('image/png');
+        link.click();
     }
 
     renderLoop(timestamp) {
@@ -243,13 +465,32 @@ class HandConnectApp {
         }
 
         const themeColor = themes[this.currentTheme](this.time, 1, 1);
-        this.matrixRain.render(themeColor, this.handVelocities);
+        if (this.matrixRain) {
+            this.matrixRain.render(themeColor, this.handVelocities);
+        }
 
+        if (!this.ctx) return;
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.ctx.globalCompositeOperation = 'screen';
 
-        this.particleSystem.updateAndRender(this.ctx);
+        // Update physics particles & shockwaves
+        if (this.particleSystem) {
+            this.particleSystem.updateAndRender(this.ctx);
+        }
 
+        // Render Ribbon Trails
+        if (this.ribbonTrails && (this.currentMode === 'all' || this.currentMode === 'trails')) {
+            this.ribbonTrails.update();
+            this.ribbonTrails.render(this.ctx);
+        }
+
+        // Render Physics Orbs
+        if (this.orbManager && (this.currentMode === 'all' || this.currentMode === 'orbs')) {
+            this.orbManager.update(this.width, this.height, this.currentHands, this.audioEngine, this.particleSystem);
+            this.orbManager.render(this.ctx);
+        }
+
+        // Render Hands and Skeleton
         if (this.currentHands.length > 0) {
             this.currentHands.forEach((hand, handIndex) => {
                 const glowColor = themes[this.currentTheme](this.time, handIndex, 2);
@@ -265,30 +506,39 @@ class HandConnectApp {
                     this.ctx.fillStyle = '#fff';
                     this.ctx.fill();
 
-                    if (Math.random() > 0.8) {
+                    // Emit to ribbon trails
+                    if (this.ribbonTrails && (this.currentMode === 'all' || this.currentMode === 'trails')) {
+                        this.ribbonTrails.addPoint(handIndex * 10 + idx, pt.x, pt.y, tipCol);
+                    }
+
+                    if (Math.random() > 0.8 && this.particleSystem) {
                         this.particleSystem.emit(pt, tipCol, 1);
                     }
                 });
 
-                const spread = getDist(hand[8], hand[20]);
-                if (spread > 0.08) {
-                    const tips = FINGER_TIPS.map((t) => mapToCanvas(hand[t], this.width, this.height));
-                    for (let a = 0; a < tips.length; a++) {
-                        for (let b = a + 1; b < tips.length; b++) {
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(tips[a].x, tips[a].y);
-                            this.ctx.lineTo(tips[b].x, tips[b].y);
-                            this.ctx.strokeStyle = themes[this.currentTheme](this.time, a + b, 10);
-                            this.ctx.lineWidth = 1.5;
-                            this.ctx.globalAlpha = 0.6;
-                            this.ctx.stroke();
+                // String Web
+                if (this.currentMode === 'all' || this.currentMode === 'web') {
+                    const spread = getDist(hand[8], hand[20]);
+                    if (spread > 0.08) {
+                        const tips = FINGER_TIPS.map((t) => mapToCanvas(hand[t], this.width, this.height));
+                        for (let a = 0; a < tips.length; a++) {
+                            for (let b = a + 1; b < tips.length; b++) {
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(tips[a].x, tips[a].y);
+                                this.ctx.lineTo(tips[b].x, tips[b].y);
+                                this.ctx.strokeStyle = themes[this.currentTheme](this.time, a + b, 10);
+                                this.ctx.lineWidth = 1.5;
+                                this.ctx.globalAlpha = 0.6;
+                                this.ctx.stroke();
+                            }
                         }
+                        this.ctx.globalAlpha = 1;
                     }
-                    this.ctx.globalAlpha = 1;
                 }
             });
 
-            if (this.currentHands.length >= 2) {
+            // Dual hand cross-connectors and mandala
+            if (this.currentHands.length >= 2 && (this.currentMode === 'all' || this.currentMode === 'web')) {
                 const h1 = this.currentHands[0];
                 const h2 = this.currentHands[1];
 
