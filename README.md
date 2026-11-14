@@ -6,9 +6,9 @@ A browser-based augmented reality hand tracking interface, interactive physics p
 [![Platform](https://img.shields.io/badge/Platform-Browser-informational.svg)](#prerequisites)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands_ML-00ffcc.svg)](https://mediapipe.dev/)
 [![Web Audio API](https://img.shields.io/badge/Web_Audio-Synthesis-ff00cc.svg)](#technology-stack)
-[![Tests](https://img.shields.io/badge/Tests-11_Passed-success.svg)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-13_Passed-success.svg)](#testing)
 
-HandConnect delivers zero-dependency, real-time hand skeleton tracking, interactive physics, and generative visualization directly in the browser. Using a standard webcam, the system detects 21 distinct 3D landmarks per hand at 60 FPS, synthesizing dynamic procedural audio, light-painting ribbon trails, gravity-driven energy orbs, and holographic geometry.
+HandConnect delivers zero-dependency, real-time hand skeleton tracking, interactive physics, and generative visualization directly in the browser. Using a standard webcam, the system detects 21 distinct 3D landmarks per hand at 60 FPS, synthesizing dynamic procedural audio, light-painting ribbon trails, gravity-driven energy orbs, holographic geometry, and an interactive air guitar where every finger functions directly as an acoustic string.
 
 ---
 
@@ -25,6 +25,7 @@ HandConnect delivers zero-dependency, real-time hand skeleton tracking, interact
   - String Web: Interconnected geometric string lattice between fingertips with dual-hand rotating mandalas.
   - Energy Orbs: Bouncing physics spheres with gravity, momentum, restitution, and fingertip deflection.
   - Light Trails: Continuous neon light-painting ribbon meshes trailing active finger movements.
+  - Air Guitar: Every finger functions directly as an acoustic guitar string with standing wave harmonic oscillations, mid-air cross-strumming, solo finger picking, and dual-hand chord fretting without static screen lines.
   - All Effects: Full combined audiovisual experience with all visual layers active.
 - Advanced Gesture Recognition:
   - Pinch: Triggers expanding radial shockwaves and frequency-swept sawtooth audio zaps.
@@ -52,14 +53,15 @@ The application follows an asynchronous client-side pipeline executing at 60 FPS
 1. Video Stream Pipeline: Captures webcam input via `navigator.mediaDevices.getUserMedia` using MediaPipe Camera utilities.
 2. Machine Learning Inference: MediaPipe Hands ML processes frames and extracts 21 3D landmark vectors per detected hand.
 3. Gesture Recognition Engine (`js/gestures.js`): Analyzes individual joint extension states, Euclidean distance ratios, hand velocity vectors, and multi-hand collision dynamics.
-4. Procedural Audio Synthesizer (`js/audio.js`): Web Audio API oscillators synthesize proximity hums, zap sweeps, sub-bass impacts, laser bursts, and pentatonic tones.
-5. Physics Simulator (`js/orbs.js`, `js/particles.js`, `js/trails.js`):
+4. Procedural Audio Synthesizer (`js/audio.js`): Web Audio API oscillators synthesize proximity hums, zap sweeps, sub-bass impacts, laser bursts, pentatonic tones, and acoustic guitar string plucking with lowpass damping filters.
+5. Physics Simulator (`js/guitar.js`, `js/orbs.js`, `js/particles.js`, `js/trails.js`):
+   - Computes standing wave harmonic vibrations and finger strumming collision velocity for 6 guitar strings.
    - Computes gravity, wall reflections, and hand mesh collisions for energy orbs.
    - Updates life cycles and alpha curves for particles and radial shockwaves.
    - Smooths historical point queues for flowing neon ribbon meshes.
 6. Dual-Layer Canvas Renderer:
    - Background Canvas (`js/matrix.js`): Renders Katakana digital rain with alpha-fading trail effects.
-   - Foreground Canvas (`js/app.js`): Composites bone segments, string webs, orbs, lasers, trails, and mandalas.
+   - Foreground Canvas (`js/app.js`): Composites bone segments, string webs, guitar fretboard, orbs, lasers, trails, and mandalas.
 7. Snapshot Compositor: Merges camera, background, and foreground canvases with timestamps into high-resolution PNG exports.
 
 ---
@@ -91,6 +93,7 @@ HandConnect/
 │   ├── app.js                 # Main application controller and render loop
 │   ├── audio.js               # Procedural audio synthesis and air harp engine
 │   ├── gestures.js            # Gesture recognition, bone calculation, and coordinate mapping
+│   ├── guitar.js              # Virtual guitar fretboard, string physics, and chord engine
 │   ├── matrix.js              # Background matrix rain canvas generator
 │   ├── orbs.js                # Bouncing interactive energy physics orbs
 │   ├── particles.js           # Particle emitters and radial shockwave simulator
@@ -164,6 +167,22 @@ The application is deployed directly to GitHub Pages at:
 | Dual Clap | Rapid collision between both wrists/palms | Triggers sub-bass sonic boom impact and double shockwaves |
 | Fast Move | Hand velocity vector > 0.05 | Matrix rain columns accelerate proportionally |
 
+### Air Guitar Controls
+
+In Air Guitar mode, there are no static guitar strings or fretboards drawn across the screen. Instead, every finger on the hand functions directly as a physical guitar string with holographic note tags (`E2`, `A2`, `D3`, `G3`, `B3`, `E4`) and standing wave vibration physics.
+
+| Action | Hand / Gesture | Behavior |
+| :--- | :--- | :--- |
+| Mid-Air Strumming | Right Hand (or secondary hand) | Strum fingertips across the left hand's fingers in mid-air. Crossing or contacting any finger string plucks standard EADGBE acoustic guitar notes with velocity-scaled volume and standing wave oscillations. |
+| Solo Finger Picking | Any Finger | Flicking, tapping, or moving any finger downward plucks that finger's string individually without requiring a second hand. |
+| Finger Pinch Pluck | Thumb + Finger | Pinching thumb with any finger plucks that string and triggers localized acoustic shockwaves. |
+| Open Chord (Standard) | Left Hand Open Hand | Plays open string frequencies (E2: 82.4 Hz, A2: 110.0 Hz, D3: 146.8 Hz, G3: 196.0 Hz, B3: 246.9 Hz, E4: 329.6 Hz) |
+| E Minor (Em) | Left Hand Fist | Shifts strings to Em voicing (fret 7 transposition) |
+| G Major (G) | Left Hand Peace Sign | Shifts strings to G Major voicing (fret 3 transposition) |
+| C Major (C) | Left Hand Pinch | Shifts strings to C Major voicing (fret 8 transposition) |
+| D Major (D) | Left Hand Pointing | Shifts strings to D Major voicing (fret 10 transposition) |
+| A Minor (Am) | Left Hand Rock On | Shifts strings to Am voicing (fret 5 transposition) |
+
 ---
 
 ## Keyboard Shortcuts
@@ -174,6 +193,7 @@ The application is deployed directly to GitHub Pages at:
 | `2` | Mode: Web | Focuses on string lattice and cross-hand mandala |
 | `3` | Mode: Orbs | Activates bouncing hand energy orb physics |
 | `4` | Mode: Trails | Activates neon ribbon light painting trails |
+| `5` or `G` | Mode: Guitar | Activates interactive finger strings air guitar |
 | `Space` | Spawn Orb | Spawns a new interactive bouncing orb |
 | `C` | Snapshot | Captures and downloads high-resolution photo |
 | `M` | Mute | Toggles audio synthesizer output on/off |
@@ -199,7 +219,7 @@ Themes can be changed through the bottom theme bar or by pressing `T`:
 
 ## Testing
 
-The project includes unit tests covering coordinate mapping, gesture classifiers, physics orb boundaries, ribbon trails, and theme generators.
+The project includes unit tests covering coordinate mapping, gesture classifiers, physics orb boundaries, ribbon trails, theme generators, and virtual guitar finger string physics.
 
 Execute the test suite using Node.js:
 
@@ -220,8 +240,10 @@ Sample output:
 ✔ Themes: all themes return valid color definitions
 ✔ PhysicsOrbs: updates position and manages orb capacities
 ✔ RibbonTrails: manages tracks and point lifecycles
-ℹ tests 11
-ℹ pass 11
+✔ VirtualGuitar: manages 6 strings, frets, and strumming collisions
+✔ VirtualGuitar: finger strings anchor to hand joints and detect plucks
+ℹ tests 13
+ℹ pass 13
 ℹ fail 0
 ```
 
