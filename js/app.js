@@ -37,6 +37,7 @@ class HandConnectApp {
         this.gestureDetector = typeof GestureDetector !== 'undefined' ? new GestureDetector() : null;
         this.orbManager = typeof OrbManager !== 'undefined' ? new OrbManager(5) : null;
         this.ribbonTrails = typeof RibbonTrails !== 'undefined' ? new RibbonTrails(26) : null;
+        this.virtualGuitar = typeof VirtualGuitar !== 'undefined' ? new VirtualGuitar() : null;
         this.tracker = null;
 
         this.uiHands = document.getElementById('ui-hands');
@@ -180,9 +181,10 @@ class HandConnectApp {
             const key = e.key.toLowerCase();
 
             if (key === '1') this.setMode('all');
-            else if (key === '2') this.setMode('web');
-            else if (key === '3') this.setMode('orbs');
-            else if (key === '4') this.setMode('trails');
+            else if (key === '2' || key === 'g') this.setMode('guitar');
+            else if (key === '3') this.setMode('web');
+            else if (key === '4') this.setMode('orbs');
+            else if (key === '5') this.setMode('trails');
             else if (key === 'm') {
                 if (btnMute) btnMute.click();
             } else if (key === 'c') {
@@ -241,6 +243,9 @@ class HandConnectApp {
         }
         if (this.matrixRain) {
             this.matrixRain.resize(this.width, this.height);
+        }
+        if (this.virtualGuitar) {
+            this.virtualGuitar.layout(this.width, this.height);
         }
     }
 
@@ -582,6 +587,14 @@ class HandConnectApp {
                     this.ctx.restore();
                 }
             }
+        }
+
+        // Render Virtual Guitar Strings
+        if (this.virtualGuitar && (this.currentMode === 'all' || this.currentMode === 'guitar')) {
+            this.virtualGuitar.updateChords(this.currentHands, this.gestureDetector);
+            this.virtualGuitar.processStrumming(this.currentHands, this.width, this.height, this.audioEngine, this.particleSystem);
+            this.virtualGuitar.update(dt);
+            this.virtualGuitar.render(this.ctx, this.width, this.height, themeColor);
         }
 
         this.updateGestures();
