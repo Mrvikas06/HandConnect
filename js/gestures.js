@@ -21,6 +21,11 @@ function mapToCanvas(point, width, height) {
     return { x: point.x * width, y: point.y * height };
 }
 
+function isFingerExtended(hand, tipIndex, pipIndex) {
+    if (!hand || !hand[tipIndex] || !hand[pipIndex] || !hand[0]) return false;
+    return getDist(hand[tipIndex], hand[0]) > getDist(hand[pipIndex], hand[0]) * 1.15;
+}
+
 function drawHandBones(context, landmarks, color, width, height) {
     if (typeof drawConnectors === 'function' && typeof HAND_CONNECTIONS !== 'undefined') {
         drawConnectors(context, landmarks, HAND_CONNECTIONS, { color: color, lineWidth: 2 });
@@ -44,10 +49,56 @@ function drawHandBones(context, landmarks, color, width, height) {
 class GestureDetector {
     constructor() {
         this.lastPinchState = [false, false];
+        this.lastHandDistance = null;
+        this.lastGesture = 'None';
     }
 
     reset() {
         this.lastPinchState = [false, false];
+        this.lastHandDistance = null;
+        this.lastGesture = 'None';
+    }
+
+    classifyHandPose(hand) {
+        if (!hand || hand.length < 21) return 'None';
+
+        const indexExt = isFingerExtended(hand, 8, 6);
+        const midExt = isFingerExtended(hand, 12, 10);
+        const ringExt = isFingerExtended(hand, 16, 14);
+        const pinkyExt = isFingerExtended(hand, 20, 18);
+
+        // Thumbs Up check: Thumb tip higher than thumb base, all other fingers curled
+        const thumbUp = hand[4] && hand[2] && (hand[4].y < hand[2].y - 0.08);
+        if (thumbUp && !indexExt && !midExt && !ringExt && !pinkyExt) {
+            return 'Thumbs Up';
+        }
+
+        // Peace / Victory: Index and Middle extended, Ring and Pinky folded
+        if (indexExt && midExt && !ringExt && !pinkyExt) {
+            return 'Peace';
+        }
+
+        // Pointing / Finger Gun: Index extended, Middle, Ring, Pinky folded
+        if (indexExt && !midExt && !ringExt && !pinkyExt) {
+            return 'Pointing';
+        }
+
+        // Rock On: Index and Pinky extended, Middle and Ring folded
+        if (indexExt && !midExt && !ringExt && pinkyExt) {
+            return 'Rock On';
+        }
+
+        // Open Hand vs Fist
+        const spread = getDist(hand[8], hand[20]);
+        if (indexExt && midExt && ringExt && pinkyExt && spread > 0.15) {
+            return 'Open Hand';
+        }
+
+        if (!indexExt && !midExt && !ringExt && !pinkyExt) {
+            return 'Fist';
+        }
+
+        return spread > 0.12 ? 'Open Hand' : 'Neutral';
     }
 
     detect(hands) {
@@ -59,7 +110,10 @@ class GestureDetector {
                 midpoint: null,
                 pinchHandIndex: -1,
                 spreadPct: 0,
-                gesture: 'None'
+                gesture: 'None',
+                newGesture: false,
+                isClapping: false,
+                pointingRay: null
             };
         }
 
@@ -89,18 +143,53 @@ class GestureDetector {
             this.lastPinchState[idx] = isPinching;
         });
 
+        // Clap detection: 2 hands rapidly approaching each other
+        let isClapping = false;
+        if (hands.length >= 2 && hands[0][0] && hands[1][0]) {
+            const currentDist = getDist(hands[0][0], hands[1][0]);
+            if (this.lastHandDistance !== null) {
+                const delta = this.lastHandDistance - currentDist;
+                if (currentDist < 0.16 && delta > 0.04) {
+                    isClapping = true;
+                }
+            }
+            this.lastHandDistance = currentDist;
+        } else {
+            this.lastHandDistance = null;
+        }
+
         let spreadPct = 0;
         let gesture = 'None';
+        let pointingRay = null;
 
         if (hands[0] && hands[0][8] && hands[0][20]) {
             const spread = getDist(hands[0][8], hands[0][20]);
             spreadPct = Math.min(Math.round(spread * 300), 100);
-            if (anyPinching) {
+
+            if (isClapping) {
+                gesture = 'CLAP !';
+            } else if (anyPinching) {
                 gesture = 'PINCH !';
             } else {
-                gesture = spreadPct > 50 ? 'Open Hand' : 'Fist';
+                gesture = this.classifyHandPose(hands[0]);
+            }
+
+            // If pointing, compute ray from index base (5) through tip (8)
+            if (gesture === 'Pointing' && hands[0][5] && hands[0][8]) {
+                const base = hands[0][5];
+                const tip = hands[0][8];
+                const dx = tip.x - base.x;
+                const dy = tip.y - base.y;
+                const len = Math.hypot(dx, dy) || 1;
+                pointingRay = {
+                    origin: tip,
+                    dir: { x: dx / len, y: dy / len }
+                };
             }
         }
+
+        const newGesture = gesture !== this.lastGesture && gesture !== 'None' && gesture !== 'Neutral';
+        this.lastGesture = gesture;
 
         return {
             isPinching: anyPinching,
@@ -108,7 +197,10 @@ class GestureDetector {
             midpoint,
             pinchHandIndex,
             spreadPct,
-            gesture
+            gesture,
+            newGesture,
+            isClapping,
+            pointingRay
         };
     }
 }
@@ -118,6 +210,7 @@ if (typeof window !== 'undefined') {
     window.HAND_CONNECTIONS_DEFAULT = HAND_CONNECTIONS_DEFAULT;
     window.getDist = getDist;
     window.mapToCanvas = mapToCanvas;
+    window.isFingerExtended = isFingerExtended;
     window.drawHandBones = drawHandBones;
     window.GestureDetector = GestureDetector;
 }
@@ -128,6 +221,7 @@ if (typeof module !== 'undefined' && module.exports) {
         HAND_CONNECTIONS_DEFAULT,
         getDist,
         mapToCanvas,
+        isFingerExtended,
         drawHandBones,
         GestureDetector
     };

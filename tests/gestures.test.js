@@ -43,21 +43,23 @@ test('GestureDetector: detects empty hands correctly', () => {
 test('GestureDetector: detects open hand and fist based on spread', () => {
     const detector = new GestureDetector();
 
-    // Open hand: landmarks 8 and 20 far apart
-    const openHand = Array(21).fill(null).map((_, i) => ({ x: 0, y: 0 }));
-    openHand[4] = { x: 0.1, y: 0.5 };
-    openHand[8] = { x: 0.2, y: 0.2 };
-    openHand[20] = { x: 0.6, y: 0.2 }; // distance = 0.4 -> 0.4 * 300 > 50
+    // Open hand: landmarks 8, 12, 16, 20 extended
+    const openHand = Array(21).fill(null).map(() => ({ x: 0.4, y: 0.8 }));
+    openHand[6] = { x: 0.2, y: 0.5 }; openHand[8] = { x: 0.2, y: 0.2 };
+    openHand[10] = { x: 0.35, y: 0.5 }; openHand[12] = { x: 0.35, y: 0.2 };
+    openHand[14] = { x: 0.48, y: 0.5 }; openHand[16] = { x: 0.48, y: 0.2 };
+    openHand[18] = { x: 0.6, y: 0.5 }; openHand[20] = { x: 0.6, y: 0.2 };
 
     const openResult = detector.detect([openHand]);
     assert.strictEqual(openResult.gesture, 'Open Hand');
     assert.strictEqual(openResult.spreadPct, 100);
 
-    // Fist: landmarks 8 and 20 close together
-    const fistHand = Array(21).fill(null).map((_, i) => ({ x: 0, y: 0 }));
-    fistHand[4] = { x: 0.1, y: 0.5 };
-    fistHand[8] = { x: 0.2, y: 0.2 };
-    fistHand[20] = { x: 0.25, y: 0.2 }; // distance = 0.05 -> 0.05 * 300 = 15 < 50
+    // Fist: landmarks curled
+    const fistHand = Array(21).fill(null).map(() => ({ x: 0.4, y: 0.8 }));
+    fistHand[6] = { x: 0.2, y: 0.5 }; fistHand[8] = { x: 0.2, y: 0.55 };
+    fistHand[10] = { x: 0.35, y: 0.5 }; fistHand[12] = { x: 0.35, y: 0.55 };
+    fistHand[14] = { x: 0.48, y: 0.5 }; fistHand[16] = { x: 0.48, y: 0.55 };
+    fistHand[18] = { x: 0.25, y: 0.5 }; fistHand[20] = { x: 0.25, y: 0.55 };
 
     const fistResult = detector.detect([fistHand]);
     assert.strictEqual(fistResult.gesture, 'Fist');
@@ -101,6 +103,60 @@ test('ParticleSystem: manages particle and shockwave capacity and lifecycle', ()
     ps.clear();
     assert.strictEqual(ps.particles.length, 0);
     assert.strictEqual(ps.ripples.length, 0);
+});
+
+test('GestureDetector: detects specialized gestures (Peace, Pointing, Rock On, Thumbs Up, Clap)', () => {
+    const detector = new GestureDetector();
+
+    // Helper to generate a hand with specified finger extension states
+    function createHand({ thumbUp = false, index = false, mid = false, ring = false, pinky = false }) {
+        const hand = Array(21).fill(null).map(() => ({ x: 0.5, y: 0.8 })); // wrist at (0.5, 0.8)
+        // thumb
+        hand[2] = { x: 0.4, y: 0.7 };
+        hand[4] = thumbUp ? { x: 0.4, y: 0.55 } : { x: 0.45, y: 0.7 };
+        // index (tip 8, pip 6)
+        hand[6] = { x: 0.45, y: 0.6 };
+        hand[8] = index ? { x: 0.45, y: 0.3 } : { x: 0.45, y: 0.65 };
+        // middle (tip 12, pip 10)
+        hand[10] = { x: 0.5, y: 0.6 };
+        hand[12] = mid ? { x: 0.5, y: 0.3 } : { x: 0.5, y: 0.65 };
+        // ring (tip 16, pip 14)
+        hand[14] = { x: 0.55, y: 0.6 };
+        hand[16] = ring ? { x: 0.55, y: 0.3 } : { x: 0.55, y: 0.65 };
+        // pinky (tip 20, pip 18)
+        hand[18] = { x: 0.6, y: 0.6 };
+        hand[20] = pinky ? { x: 0.6, y: 0.3 } : { x: 0.6, y: 0.65 };
+        return hand;
+    }
+
+    // Peace
+    const peaceResult = detector.detect([createHand({ index: true, mid: true, ring: false, pinky: false })]);
+    assert.strictEqual(peaceResult.gesture, 'Peace');
+
+    // Pointing
+    const pointResult = detector.detect([createHand({ index: true, mid: false, ring: false, pinky: false })]);
+    assert.strictEqual(pointResult.gesture, 'Pointing');
+    assert.ok(pointResult.pointingRay !== null);
+
+    // Rock On
+    const rockResult = detector.detect([createHand({ index: true, mid: false, ring: false, pinky: true })]);
+    assert.strictEqual(rockResult.gesture, 'Rock On');
+
+    // Thumbs Up
+    const thumbResult = detector.detect([createHand({ thumbUp: true, index: false, mid: false, ring: false, pinky: false })]);
+    assert.strictEqual(thumbResult.gesture, 'Thumbs Up');
+
+    // Clap: previous distance high, next distance close
+    detector.detect([
+        [{ x: 0.2, y: 0.5 }, ...Array(20).fill({ x: 0.2, y: 0.5 })],
+        [{ x: 0.6, y: 0.5 }, ...Array(20).fill({ x: 0.6, y: 0.5 })]
+    ]);
+    const clapResult = detector.detect([
+        [{ x: 0.38, y: 0.5 }, ...Array(20).fill({ x: 0.38, y: 0.5 })],
+        [{ x: 0.42, y: 0.5 }, ...Array(20).fill({ x: 0.42, y: 0.5 })]
+    ]);
+    assert.strictEqual(clapResult.isClapping, true);
+    assert.strictEqual(clapResult.gesture, 'CLAP !');
 });
 
 test('Themes: all themes return valid color definitions', () => {
