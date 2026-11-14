@@ -585,10 +585,44 @@ function mapToCanvas(point) {
 
 let lastPinchState = [false, false];
 
+const HAND_CONNECTIONS_DEFAULT = [
+    [0, 1], [1, 2], [2, 3], [3, 4],
+    [0, 5], [5, 6], [6, 7], [7, 8],
+    [5, 9], [9, 10], [10, 11], [11, 12],
+    [9, 13], [13, 14], [14, 15], [15, 16],
+    [13, 17], [0, 17], [17, 18], [18, 19], [19, 20]
+];
+
+function drawHandBones(context, landmarks, color) {
+    if (typeof drawConnectors === 'function' && typeof HAND_CONNECTIONS !== 'undefined') {
+        drawConnectors(context, landmarks, HAND_CONNECTIONS, { color: color, lineWidth: 2 });
+        return;
+    }
+    const connections = (typeof HAND_CONNECTIONS !== 'undefined') ? HAND_CONNECTIONS : HAND_CONNECTIONS_DEFAULT;
+    context.strokeStyle = color;
+    context.lineWidth = 2;
+    for (let i = 0; i < connections.length; i++) {
+        const p1 = landmarks[connections[i][0]];
+        const p2 = landmarks[connections[i][1]];
+        if (p1 && p2) {
+            context.beginPath();
+            context.moveTo(p1.x * width, p1.y * height);
+            context.lineTo(p2.x * width, p2.y * height);
+            context.stroke();
+        }
+    }
+}
+
 function detectGestures() {
-    if (!currentHands.length) return;
+    if (!currentHands.length) {
+        uiGesture.innerText = "None";
+        uiSpread.innerText = "0%";
+        lastPinchState = [false, false];
+        return;
+    }
     
     currentHands.forEach((hand, idx) => {
+        if (!hand || !hand[4] || !hand[8]) return;
         const thumb = hand[4];
         const index = hand[8];
         const dist = getDist(thumb, index);
@@ -606,7 +640,7 @@ function detectGestures() {
         lastPinchState[idx] = isPinching;
     });
 
-    if (currentHands[0]) {
+    if (currentHands[0] && currentHands[0][8] && currentHands[0][20]) {
         const spread = getDist(currentHands[0][8], currentHands[0][20]);
         let spreadPct = Math.min(Math.round(spread * 300), 100);
         uiSpread.innerText = spreadPct + '%';
@@ -731,10 +765,7 @@ function renderLoop(timestamp) {
         currentHands.forEach((hand, handIndex) => {
             const glowColor = themes[currentTheme](time, handIndex, 2);
             
-            drawConnectors(ctx, hand, HAND_CONNECTIONS, {
-                color: glowColor,
-                lineWidth: 2
-            });
+            drawHandBones(ctx, hand, glowColor);
             
             FINGER_TIPS.forEach((tipIndex, idx) => {
                 const pt = mapToCanvas(hand[tipIndex]);
