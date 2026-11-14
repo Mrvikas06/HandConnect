@@ -160,7 +160,7 @@ test('GestureDetector: detects specialized gestures (Peace, Pointing, Rock On, T
 });
 
 test('Themes: all themes return valid color definitions', () => {
-    const themeNames = ['Rainbow', 'Cyberpunk', 'Lava', 'Ocean', 'Galaxy'];
+    const themeNames = ['Rainbow', 'Cyberpunk', 'Lava', 'Ocean', 'Galaxy', 'Synthwave', 'Supernova'];
     themeNames.forEach((name) => {
         assert.ok(themes[name], `Theme ${name} exists`);
         const color = themes[name](1.5, 0, 5);

@@ -6,7 +6,9 @@ const themes = {
     'Cyberpunk': (t, index) => (index % 2 === 0 ? '#ff003c' : '#00f0ff'),
     'Lava': (t, index) => `hsl(${(10 + (index * 10)) % 40}, 100%, ${50 + Math.sin(t) * 10}%)`,
     'Ocean': (t, index) => `hsl(${180 + (index * 20)}, 100%, 60%)`,
-    'Galaxy': (t, index) => `hsl(${260 + Math.sin(t * 2 + index) * 40}, 100%, 65%)`
+    'Galaxy': (t, index) => `hsl(${260 + Math.sin(t * 2 + index) * 40}, 100%, 65%)`,
+    'Synthwave': (t, index) => `hsl(${(310 + (index * 25) + Math.sin(t * 2) * 20) % 360}, 100%, 60%)`,
+    'Supernova': (t, index) => `hsl(${(45 + Math.sin(t * 3 + index) * 20)}, 100%, ${70 + Math.sin(t * 2) * 20}%)`
 };
 
 class HandConnectApp {
