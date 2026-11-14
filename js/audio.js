@@ -11,6 +11,8 @@ class AudioEngine {
         this.initialized = false;
         this.isMuted = false;
         this.pentatonicScale = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25];
+        this.guitarTuning = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63]; // E2, A2, D3, G3, B3, E4
+        this.guitarStringNames = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'];
         this.lastToneTime = 0;
     }
 
@@ -99,6 +101,62 @@ class AudioEngine {
 
         const freq = this.pentatonicScale[fingerIndex % this.pentatonicScale.length];
         this.playTone(freq, 'triangle', 0.35, 0.12);
+    }
+
+    playGuitarString(stringIndex, fretOffset = 0, intensity = 0.5) {
+        if (!this.ctx || this.isMuted) return;
+        this.resume();
+
+        try {
+            const now = this.ctx.currentTime;
+            const baseFreq = this.guitarTuning[stringIndex % this.guitarTuning.length];
+            const frequency = baseFreq * Math.pow(2, fretOffset / 12);
+
+            const oscFundamental = this.ctx.createOscillator();
+            oscFundamental.type = 'triangle';
+            oscFundamental.frequency.setValueAtTime(frequency, now);
+
+            const oscHarmonic = this.ctx.createOscillator();
+            oscHarmonic.type = 'sawtooth';
+            oscHarmonic.frequency.setValueAtTime(frequency * 2, now);
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(Math.min(3200, frequency * 8), now);
+            filter.frequency.exponentialRampToValueAtTime(300, now + 1.2);
+
+            const gainFundamental = this.ctx.createGain();
+            const volume = Math.min(0.45, 0.18 + intensity * 0.25);
+            gainFundamental.gain.setValueAtTime(volume, now);
+            gainFundamental.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+
+            const gainHarmonic = this.ctx.createGain();
+            gainHarmonic.gain.setValueAtTime(volume * 0.35, now);
+            gainHarmonic.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+
+            oscFundamental.connect(gainFundamental);
+            oscHarmonic.connect(gainHarmonic);
+            gainFundamental.connect(filter);
+            gainHarmonic.connect(filter);
+            filter.connect(this.masterGain);
+
+            oscFundamental.onended = () => {
+                try {
+                    oscFundamental.disconnect();
+                    oscHarmonic.disconnect();
+                    gainFundamental.disconnect();
+                    gainHarmonic.disconnect();
+                    filter.disconnect();
+                } catch (_) {}
+            };
+
+            oscFundamental.start(now);
+            oscHarmonic.start(now);
+            oscFundamental.stop(now + 1.6);
+            oscHarmonic.stop(now + 0.7);
+        } catch (e) {
+            console.warn("Guitar pluck error:", e);
+        }
     }
 
     triggerZap() {
